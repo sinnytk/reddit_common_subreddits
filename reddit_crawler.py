@@ -2,6 +2,7 @@ import praw
 import pdb
 from prawcore import NotFound as SubredditNotFound
 import keys
+from collections import Counter
 SUBREDDIT_QUERY = None
 REDDIT_CLIENT = praw.Reddit(client_id=keys.client_id,
                             client_secret=keys.client_secret,
@@ -30,6 +31,24 @@ def scrap_redditors(subreddit_ins, limit=100):
     return redditors
 
 
+def scrap_subreddits(redditors):
+    total_subreddits = []
+    n = len(redditors)
+    for i, redditor in enumerate(redditors):
+        print(f'Scraping {redditor.name:<10} {i+1}/{n:<10}', end='')
+        user_subreddits = set()
+        if not hasattr(redditor, 'is_suspended'):
+            for comment in redditor.comments.new(limit=None):
+                user_subreddits.add(comment.subreddit.display_name)
+            for submission in redditor.submissions.new(limit=None):
+                user_subreddits.add(submission.subreddit.display_name)
+            print(f'Found {len(user_subreddits)} subreddits')
+            total_subreddits.extend(list(user_subreddits))
+        else:
+            print('SUSPENDED')
+    return total_subreddits
+
+
 def main():
     global SUBREDDIT_QUERY, USER_LIMIT
     SUBREDDIT_QUERY = input(
@@ -45,8 +64,14 @@ def main():
     except ValueError:
         print(f'ERROR: Incorrect users number, try again.')
         exit(1)
-
     redditors = scrap_redditors(subreddit_instance, USER_LIMIT)
+    common_subreddits = scrap_subreddits(redditors)
+    subreddit_occurrences = Counter(common_subreddits).items()
+    print(f'\n\nOutput saved at {SUBREDDIT_QUERY} - {USER_LIMIT}.csv')
+    with open(f'{SUBREDDIT_QUERY} - {USER_LIMIT}.csv', 'w', encoding='utf-8') as file:
+        file.write('Subreddit,Count\n')
+        for sub_occur in subreddit_occurrences:
+            file.write(f"{sub_occur[0]},{sub_occur[1]}\n")
 
 
 if __name__ == "__main__":
