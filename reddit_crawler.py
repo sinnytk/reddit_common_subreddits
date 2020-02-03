@@ -28,7 +28,7 @@ def scrap_redditors(subreddit_ins, limit=100):
                     break
         else:
             break
-    return redditors
+    return redditors[0:limit]
 
 
 def scrap_subreddits(redditors):
