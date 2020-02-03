@@ -25,6 +25,8 @@ def scrap_redditors(subreddit_ins, limit=100):
                     redditors.append(comment.author)
                 else:
                     break
+        else:
+            break
     return redditors
 
 
