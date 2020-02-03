@@ -35,7 +35,11 @@ def scrap_subreddits(redditors):
     total_subreddits = []
     n = len(redditors)
     for i, redditor in enumerate(redditors):
-        print(f'Scraping {redditor.name:<10} {i+1}/{n:<10}', end='')
+        try:
+            print(f'Scraping {redditor.name:<20} {i+1}/{n:<20}', end='')
+        except AttributeError:
+            print(f'{"BANNED":<20} {i+1}/{n:<20} 0 Subreddits')
+            continue
         user_subreddits = set()
         if not hasattr(redditor, 'is_suspended'):
             for comment in redditor.comments.new(limit=None):
